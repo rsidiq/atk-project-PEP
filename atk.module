@@ -1,0 +1,824 @@
+<?php
+function atk_menu($may_cache) {
+    $nama 	= $GLOBALS['user']->name;
+//     $is_app = (isset($GLOBALS['fusion_app']) && $GLOBALS['fusion_app']);
+	if(arg(0) == 'atk'){
+	    $GLOBALS['fusion_app'] = TRUE;
+		$GLOBALS['appTitle'] = 'ATK Online';
+	    drupal_add_css(drupal_get_path('module', 'atk').'/css/tambahan.css');
+	    drupal_add_js("$(document).ready(function() { $('div#app-title h2').text('" .$GLOBALS['appTitle']."'); })", "inline");
+	    drupal_add_js("if((navigator.userAgent.indexOf('MSIE') != -1 ) || (!!document.documentMode == true )){ alert('Rekomendasi Browser Mozilla Firefox dan Google Chrome'); }", "inline");
+	}
+	
+    $nopek 	= get_nopek_org($nama);
+	if(!$may_cache) {
+		$items = array();
+		$items[] = array(
+				'path' => 'atk',
+				'title' => 'Home',				
+			    'callback' => 'drupal_goto',
+			    'callback arguments' => array('atk/online'),
+    		 	'weight'=>0,
+				'access' => TRUE,
+				'type' => MENU_LOCAL_TASK
+		);
+		$items[] = array(
+				'path' => 'atk/online',
+				'title' => 'Home',
+				'callback' => 'atk_home',
+				'access' => TRUE,
+				'type' => MENU_CALLBACK
+		);
+		$items[] = array(
+				'path' => 'atk/online/home',
+				'title' => 'Home',				
+			    'callback' => 'drupal_goto',
+			    'callback arguments' => array('atk/online'),
+    		 	'weight'=>0,
+				'access' => TRUE,
+				'type' => MENU_LOCAL_TASK
+		);
+		// RESERVATION =============================================================================
+    	$items[] = array(
+				'path' => 'atk/online/reservation',
+				'title' => 'Reservation',
+				'callback' => 'drupal_get_form',
+				'callback arguments' => array('atk_reservation'), // 'atk scm approval','atk manager approval','atk super admin'
+    			'weight'=>1,
+				'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer') || user_access('atk scm approval') || user_access('atk manager approval'),
+				'type' => MENU_LOCAL_TASK
+		);
+    	$items[] = array(
+    			'path' => 'atk/online/reservation/view',
+    			'title' => 'Reservation View',
+    			'callback' => 'atk_reservation_view',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer') || user_access('atk scm approval') || user_access('atk manager approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/reservation/new',
+    			'title' => 'New Reservation',
+    			'callback' => 'atk_reservation_new',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer') || user_access('atk scm approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/reservation/view/data',
+    			'title' => 'Reservation View Data Detil',
+    			'callback' => 'atk_res_view_data',
+    			'access' => true,
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/reservation/batal',
+    			'title' => 'Cancel Reservation',
+    			'callback' => 'atk_batalpesan',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer') || user_access('atk scm approval') || user_access('atk manager approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/reservation/info',
+    			'title' => 'Info Reservation',
+    			'callback' => 'atk_info_ambil_barang',
+    			'access' => user_access('atk super admin') || user_access('atk gudang'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+				'path' => 'atk/online/reservation/detil',
+				'title' => 'New Reservation',
+				'callback' => 'drupal_get_form',
+				'callback arguments' => array('atk_reservation_detil'),
+				'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer') || user_access('atk scm approval') || user_access('atk manager approval'),
+				'type' => MENU_CALLBACK
+		);
+    	$items[] = array(
+				'path' => 'atk/online/reservation/approved',
+				'title' => 'Approved Reservation',
+				'callback' => 'drupal_get_form',
+				'callback arguments' => array('atk_reservation_approved'),
+				'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer') || user_access('atk scm approval') || user_access('atk manager approval'),
+				'type' => MENU_CALLBACK
+		);
+    	$items[] = array(
+				'path' => 'atk/online/reservation/reject',
+				'title' => 'Reject Reservation',
+				'callback' => 'atk_reservation_reject',
+				'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer') || user_access('atk scm approval') || user_access('atk manager approval'),
+				'type' => MENU_CALLBACK
+		);
+    	$items[] = array(
+    			'path' => 'atk/online/reservation/sabmit',
+    			'title' => 'Submit Reservation',
+    			'callback' => 'atk_reservation_sabmit',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer') || user_access('atk scm approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+				'path' => 'atk/online/reservation/editJml',
+				'title' => 'Edit Jumlah Item - Reservation',
+				'callback' => 'drupal_get_form',
+				'callback arguments' => array('atk_reservation_editJml'),
+				'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+				'type' => MENU_CALLBACK
+		);
+    	$items[] = array(
+    			'path' => 'atk/online/reservation/history',
+    			'title' => 'Submit Reservation',
+    			'callback' => 'atk_reservation_history',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer') || user_access('atk scm approval') || user_access('atk manager approval'),
+    			'type' => MENU_CALLBACK
+    	);
+		// END RESERVATION =============================================================================
+    	$items[] = array(
+				'path' => 'atk/online/issue',
+				'title' => 'Goods Issue',
+				'callback' => 'drupal_get_form',
+				'callback arguments' => array('atk_issue'),
+    			'weight'=>2,
+				'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk gudang'),
+				'type' => MENU_LOCAL_TASK
+		);
+    	$items[] = array(
+    			'path' => 'atk/online/issue/view',
+    			'title' => 'Goods Issue View',
+    			'callback' => 'atk_issue_view',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk gudang'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/issue/view/data',
+    			'title' => 'Data Reservasi View',
+    			'callback' => 'atk_issue_view_data',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk gudang'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/issue/set',
+    			'title' => 'Set Goods Issue',
+    			'callback' => 'atk_issue_set',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk gudang'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/issue/close',
+    			'title' => 'Goods Issue to Closed',
+    			'callback' => 'drupal_get_form',
+    			'callback arguments' => array('atk_issue_close'),
+    			'weight'=>2,
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk gudang'),
+    			'type' => MENU_LOCAL_TASK
+    	);
+    	// REPORT
+    	$items[] = array(
+				'path' => 'atk/online/report',
+				'title' => 'Report',
+				'callback' => 'atk_report',
+    			'weight'=>6,
+				'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+				'type' => MENU_LOCAL_TASK
+		);
+    	$items[] = array(
+			'path' => 'atk/online/report/liststock',
+			'title' => 'List Stock',
+			'callback' => 'drupal_get_form',
+			'callback arguments' => array('atk_report_liststock'),
+			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+			'type' => MENU_CALLBACK
+		);
+    	$items[] = array(
+    		'path' => 'atk/online/report/liststock/excel',
+    		'title' => 'View All List Stock',
+    		'callback' => 'atk_report_liststock_excel',
+    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/report/liststock/view',
+    		'title' => 'View All List Stock',
+    		'callback' => 'atk_report_liststock_view',
+    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+			'path' => 'atk/online/report/reservation',
+			'title' => 'Reservation Report',
+			'callback' => 'drupal_get_form',
+			'callback arguments' => array('atk_report_reservation'),
+			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+			'type' => MENU_CALLBACK
+		);
+    	$items[] = array(
+    		'path' => 'atk/online/report/reservation/view',
+    		'title' => 'View All List Stock',
+    		'callback' => 'atk_report_reservation_view',
+    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+				'path' => 'atk/online/report/logs',
+				'title' => 'Report Logs',
+				'callback' => 'atk_report_logs_view',
+    			'weight'=>6,
+				'access' => user_access('atk admin') || user_access('atk super admin'),
+				'type' => MENU_CALLBACK
+		);
+    	$items[] = array(
+    			'path' => 'atk/online/report/form',
+    			'title' => 'Reservation Report',
+    			'callback' => 'drupal_get_form',
+    			'callback arguments' => array('atk_report_form'),
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/report/bulanan',
+    		'title' => 'Report Bulan',
+    		'callback' => 'atk_report_bulan',
+    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/report/bulanan/toexcel',
+    		'title' => 'Report Bulan',
+    		'callback' => 'atk_report_bulan_toexcel',
+    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    		'type' => MENU_CALLBACK
+    	);
+    	//===================================================================================== #2
+    	$items[] = array(
+    			'path' => 'atk/online/report/reject',
+    			'title' => 'Report Reject',
+    			'callback' => 'drupal_get_form',
+    			'callback arguments' => array('atk_report_reject_form'),
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/report/bulanan/reject',
+    		'title' => 'Report Bulanan Reject',
+    		'callback' => 'atk_report_bulanan_reject',
+    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/report/bulanan/reject/toexcel',
+    		'title' => 'Report Bulanan Reject',
+    		'callback' => 'atk_report_bulanan_reject_toexcel',
+    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    		'type' => MENU_CALLBACK
+    	);  
+    	//===================================================================================== #3
+    	$items[] = array(
+    			'path' => 'atk/online/report/penggunaan',
+    			'title' => 'Report Penggunaan',
+    			'callback' => 'drupal_get_form',
+    			'callback arguments' => array('atk_report_penggunaan_form'),
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/report/penggunaan/all',
+    			'title' => 'Report Bulanan Penggunaan',
+    			'callback' => 'atk_report_penggunaan_all',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/report/penggunaan/toexcel',
+    			'title' => 'Report Bulanan Reject',
+    			'callback' => 'atk_report_penggunaan_toexcel',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	// END REPORT
+    	// Set Penanggung Jawab
+    	if(!$nopek){    		// fix ! && // (!$_SESSION["reservation"]) && ((!$nopek))
+	    	$items[] = array(
+				'path' => 'atk/online/spj',
+				'title' => 'Set Penanggung Jawab Reservasi',
+				'callback' => 'drupal_get_form',
+				'callback arguments' => array('atk_spj'),
+	    		'weight'=>7,
+				'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer'),
+				'type' => MENU_LOCAL_TASK
+			);
+	    	$items[] = array(
+	    		'path' => 'atk/online/spj/view',
+	    		'title' => 'Set Penanggung Jawab Reservasi',
+	    		'callback' => 'atk_spj_view',
+	    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer'),
+	    		'type' => MENU_CALLBACK
+	    	);
+	    	$items[] = array(
+	    		'path' => 'atk/online/set',
+	    		'title' => 'Set Penanggung Jawab Reservasi',
+	    		'callback' => 'atk_set_to_ses_pekerja',
+	    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer'),
+	    		'type' => MENU_CALLBACK
+	    	);
+    	}
+    	// END Set Penanggung Jawab
+    	// ADMIN =====================================================================================================
+    	$items[] = array(
+    			'path' => 'atk/online/master',
+    			'title' => 'Master',
+    			'callback' => 'atk_master',
+    			'weight'=>5,
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    			'type' => MENU_LOCAL_TASK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/master/listall',
+    			'title' => 'List All View Reservation',
+    			'callback' => 'atk_listall_view',
+    			'weight'=>88,
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/master/listall/toexcel',
+    			'title' => 'List All View Reservation toExcel',
+    			'callback' => 'atk_listall_data_reservasi_toexcel',
+    			'weight'=>89,
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk scm approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/master/upload/gr',
+    			'title' => 'GR Upload',
+    			'callback' => 'drupal_get_form',
+    			'callback arguments' => array('atk_upload_gr'),
+    			'weight'=>4,
+    			'access' => user_access('atk super admin'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/master/upload/user',
+    			'title' => 'User Upload',
+    			'callback' => 'drupal_get_form',
+    			'callback arguments' => array('atk_up_user'),
+    			'weight'=>77,
+    			'access' => user_access('atk super admin'),
+    			'type' => MENU_CALLBACK
+    	);
+    	// CATEGORY
+    	$items[] = array(
+    			'path' => 'atk/online/category/view',
+    			'title' => 'View All Category',
+    			'callback' => 'atk_category_view',
+    			'access' => user_access('atk super admin'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/category/delete',
+    			'title' => 'Delete Category',
+    			'callback' => 'atk_category_delete',
+    			'access' => user_access('atk super admin'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+				'path' => 'atk/online/category/set',
+				'title' => 'Set Kategori',
+				'callback' => 'drupal_get_form',
+				'callback arguments' => array('atk_category_set'),
+				'access' => user_access('atk super admin'),
+				'type' => MENU_CALLBACK
+		);
+    	// MATERIAL
+    	$items[] = array(
+    			'path' => 'atk/online/material/view',
+    			'title' => 'View All Material',
+    			'callback' => 'atk_material_view',
+    			'access' => user_access('atk super admin'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    			'path' => 'atk/online/material/delete',
+    			'title' => 'Delete Material',
+    			'callback' => 'atk_material_delete',
+    			'access' => user_access('atk super admin'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+				'path' => 'atk/online/material/set',
+				'title' => 'Set Material',
+				'callback' => 'drupal_get_form',
+				'callback arguments' => array('atk_material_set'),
+				'access' => user_access('atk super admin'),
+				'type' => MENU_CALLBACK
+		);
+    	// PLANT
+    	$items[] = array(
+    		'path' => 'atk/online/plant/view',
+    		'title' => 'View All Plant',
+    		'callback' => 'atk_plant_view',
+    		'access' => user_access('atk super admin'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/plant/delete',
+    		'title' => 'Delete Plant',
+    		'callback' => 'atk_plant_delete',
+    		'access' => user_access('atk super admin'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+			'path' => 'atk/online/plant/set',
+			'title' => 'Set Plant',
+			'callback' => 'drupal_get_form',
+			'callback arguments' => array('atk_plant_set'),
+			'access' => user_access('atk super admin'),
+			'type' => MENU_CALLBACK
+		);
+    	// WAREHOUSE
+    	$items[] = array(
+    		'path' => 'atk/online/warehouse/view',
+    		'title' => 'View All Warehouse',
+    		'callback' => 'atk_warehouse_view',
+    		'access' => user_access('atk super admin'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/warehouse/delete',
+    		'title' => 'Delete Warehouse',
+    		'callback' => 'atk_warehouse_delete',
+    		'access' => user_access('atk super admin'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+			'path' => 'atk/online/warehouse/set',
+			'title' => 'Set Warehouse',
+			'callback' => 'drupal_get_form',
+			'callback arguments' => array('atk_warehouse_set'),
+			'access' => user_access('atk super admin'),
+			'type' => MENU_CALLBACK
+		);
+    	// STOCK
+    	$items[] = array(
+    		'path' => 'atk/online/stock/view',
+    		'title' => 'View All Stock',
+    		'callback' => 'atk_stock_view',
+    		'access' => user_access('atk admin') || user_access('atk super admin'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/stock/delete',
+    		'title' => 'Delete Stock',
+    		'callback' => 'atk_stock_delete',
+    		'access' => user_access('atk admin') || user_access('atk super admin'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+			'path' => 'atk/online/stock/set',
+			'title' => 'Set Stock',
+			'callback' => 'drupal_get_form',
+			'callback arguments' => array('atk_stock_set'),
+			'access' => user_access('atk admin') || user_access('atk super admin'),
+			'type' => MENU_CALLBACK
+		);
+    	$items[] = array(
+    		'path' => 'atk/online/stok/toexcel',
+    		'title' => 'Stock Kritis toExcel',
+    		'callback' => 'atk_stock_toexcel',
+    		'access' => user_access('atk admin') || user_access('atk super admin'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/data_stok/toexcel',
+    		'title' => 'Data Stock toExcel',
+    		'callback' => 'atk_stock_view_toexcel',
+    		'access' => user_access('atk admin') || user_access('atk super admin'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/liststock/view',
+    		'title' => 'List Stock Gudang',
+    		'callback' => 'atk_liststock_view',
+    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk gudang'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/liststock/toexcel',
+    		'title' => 'List Stock Gudang',
+    		'callback' => 'atk_liststock_toexcel',
+    		'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk gudang'),
+    		'type' => MENU_CALLBACK
+    	);
+    	// USER
+    	$items[] = array(
+    			'path' => 'atk/online/user/toexcel',
+    			'title' => 'List All User ATK',
+    			'callback' => 'atk_user_view_toexcel',
+    			'access' => user_access('atk admin') || user_access('atk super admin') || user_access('atk issuer') || user_access('atk scm approval') || user_access('atk manager approval'),
+    			'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/user/view',
+    		'title' => 'View All User ATK',
+    		'callback' => 'atk_user_view',
+    		'access' => user_access('atk admin') || user_access('atk super admin'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+    		'path' => 'atk/online/user/delete',
+    		'title' => 'Delete User ATK',
+    		'callback' => 'atk_user_delete',
+    		'access' => user_access('atk admin') || user_access('atk super admin'),
+    		'type' => MENU_CALLBACK
+    	);
+    	$items[] = array(
+			'path' => 'atk/online/user/set',
+			'title' => 'Add User ATK',
+			'callback' => 'drupal_get_form',
+			'callback arguments' => array('atk_user_set'),
+			'access' => user_access('atk admin') || user_access('atk super admin'),
+			'type' => MENU_CALLBACK
+		);
+		$items[] = array(   
+		    'path' => 'atk/online/user/name',   
+		    'title' => 'Autofill Username',
+		    'callback' => 'user_name',   
+		    'access' => user_access('atk admin') || user_access('atk super admin'),
+		    'type' => MENU_CALLBACK, 
+	    );
+		// END ADMIN =====================================================================================================
+	}
+  return $items;
+}
+
+// Main ==========================================================================================
+$data = array(
+		'reservation',
+		'issue','retur',
+		'gr','up_user','spj',
+		'category',
+		'material',
+		'plant',
+		'warehouse',
+		'stock',
+		'liststock',
+		'user',
+		'report',		
+		'report_bln',		
+		'listAll',		
+		'report_reject',		
+		'penggunaan'		
+);
+foreach ($data as $key => $name){
+	include_once 'controller/' .$name. '.php';
+}
+// End Main ======================================================================================
+
+function cek_user_atk(){
+	$nama 	= $GLOBALS['user']->name;	
+	$nopek 	= get_nopek_org($nama);
+// 	$data 	= Org::loadEmployee();
+// 	$nopek 	= $data['employee_no'];
+// 	$uid 	= $GLOBALS['user']->uid;
+// 	$role 	= $GLOBALS['user']->roles[165]; // <<= sample cek user roles [10] -> admin global	
+// 	$un		= get_username_org($nopek);
+// 	$no		= get_nopek_org($username);
+	return $hasil;
+}
+function atk_stock_kritis(){
+	$usr	= atk_user_roles();
+	$sa		= $usr['sa'];
+  	$scmApp	= $usr['scmApp'];
+  	$admin	= $usr['admin'];
+	
+	$judul = array(array('data'=>t('No.'),),
+			array('data'=>t('KIMAP'),),
+			array('data'=>t('Description'),),
+			array('data'=>t('Warehouse'),),
+			array('data'=>t('Plant'),),
+			array('data'=>t('Qty Stock'),),
+			array('data'=>t('Qty Min'),)
+	);
+	
+	db_set_active('pep');
+	$db_data = db_query("SELECT * FROM atk_stock ORDER BY idWarehouse,qty,idStock ASC"); 
+	while($row = db_fetch_array($db_data)) {	
+		// cek nilai min dari material : atk_stock(idMaterial, qty)
+		// bandingkan dengan nilai stock, apakah dibawah/diatas nilai atk_material (min)
+		// ============== skrip ======================== tampilkan hanya jika $row['qty'] < atk_material(min)
+		$material_data 	= atk_material_data($row['idMaterial']);
+		$material_min	= $material_data['min'];
+		$kimap			= $material_data['materialCode'];
+		
+		$usr	= atk_user_roles(); 	// cek data login
+		$un		= $usr['nama'];
+		$sa		= $usr['sa']; 			// is Super Admin ??? 	(1) admin
+		$admn	= $usr['admin'];
+		$usr_atk= atk_user_data($un); 	// cek data atk
+		$lokasi	= $usr_atk['lokasi'];	// cek lokasi user atk	(2) -> idPlant(lokasi) -> user login
+		$idW	= atk_warehouse_data($row['idWarehouse']);
+		$idPlant= $idW['idPlant'];		// idPlant(lokasi) -> item(barang)
+		
+		if($row['qty'] < $material_min){
+			if($sa){
+				$isi[] 	= array(++$xyz, $kimap, atk_material_data_select($row['idMaterial']), atk_warehouse_data_select($row['idWarehouse']), atk_cek_plant($row['idWarehouse']), $row['qty'], $material_min);
+				$kiy[]	= array($row['idMaterial']);
+			}elseif($lokasi == $idPlant && $admn){
+				$isi[] 	= array(++$xyz, $kimap, atk_material_data_select($row['idMaterial']), atk_warehouse_data_select($row['idWarehouse']), atk_cek_plant($row['idWarehouse']), $row['qty'], $material_min);
+				$kiy[]	= array($row['idMaterial']);
+			}
+		}
+	}
+	db_set_active();		
+
+	$hasil['judul'] = $judul;
+	$hasil['isi'] 	= $isi;
+	if(isset($kiy) && ($sa || $scmApp || $admin)){
+// 		drupal_add_js('(function ($) { alert("Stock Material ada yang dibawah Minimum \nlihat detail di :\nhttp://portal.pertamina-ep.com/atk/online") }(jQuery));', 'inline');
+		drupal_set_message('Attention, Material below Minimum Stock Qty. View detail <a href="' .base_path(). 'atk/online">here</a>', 'error');
+	}
+	return $hasil;
+}
+function atk_home() {
+//   	$link = "<a href='http://home.pertamina-ep.com/sites/Supply/Documents/ATK%20Online%20User%20Guide.pdf' target='_blank'>ATK Online User Guide</a><br><br>";
+  	$link = "<a href='" .base_path(). "files/portal/atk/panduan ATK USER.pdf' target='_blank'>ATK Online User Guide <img src='" .base_path(). "sites/all/themes/portal2009/images/icon_pdf.png'></a><br><br>";
+  	$link .= "<br><a href='" .base_path(). "atk/online/user/toexcel'>ATK User List</a><br><br>";
+  	$usr	= atk_user_roles(); 
+  	$sa		= $usr['sa'];
+	$scmApp	= $usr['scmApp'];
+  	$admin	= $usr['admin'];
+  	
+  	// panggil themes table daftar stock yg KRITIS !
+  	if($sa || $admin || $scmApp){
+	  	$tampilkan 	= atk_stock_kritis();
+	  	$output 	= theme_table($tampilkan['judul'], $tampilkan['isi']);
+	  	$judul 		= '<strong>Below Minimum Stock Qty Material List</strong><br>';
+	  	$toexcel	= '<a href="' .base_path(). 'atk/online/stok/toexcel">Export to Excel</a>';
+  	}
+
+  	if(arg(0) == 'atk' && $usr['nama'] == ''){
+  		drupal_set_message('Harap Login Terlebih Dahulu, klik <a href="' .base_path(). 'user/login?destination=atk/online">dsini</a>', 'error');
+  	}
+  	
+	// bersihkan session 	
+	// session_destroy();
+	// session_unset();
+	return $link.$judul.$toexcel.$output;
+}
+function atk_stock_toexcel(){
+	$tampilkan 	= atk_stock_kritis();
+	$judul		= $tampilkan['judul'];
+	$isi		= $tampilkan['isi'];
+	
+	$workbook = new Spreadsheet_Excel_Writer();
+	$workbook->send('critical_stock.xls');
+	$worksheet =& $workbook->addWorksheet('Critical_Stock');
+	$worksheet->freezePanes(array(1, 0));
+	$format =& $workbook->addFormat(array('Size' => 10,
+			'Align' => 'center',
+			'Bold' => 1,
+			'Color' => 'white',
+			'Pattern' => 1,
+			'BgColor' => 'white',
+			'FgColor' => 'grey'));
+	$worksheet->setColumn(0,0,5);
+	$worksheet->setColumn(1,1,15);
+	$worksheet->setColumn(2,2,70);
+	$worksheet->setColumn(3,3,10);
+	$worksheet->setColumn(4,4,25);
+	$worksheet->setColumn(5,5,15);
+	$worksheet->setColumn(6,6,15);
+	
+	foreach ($judul as $key => $value){
+		foreach ($value as $key1 => $hasil){
+			$worksheet->write(0, $key, $hasil, $format);
+		}
+	}
+	$r = 1;
+	foreach ($isi as $key => $value){
+		foreach ($value as $key1 => $hasil){
+			$worksheet->write($r, $key1, $hasil);
+		}
+		$r++;
+	}
+	$workbook->close();
+}
+function atk_status_pil($nil) {
+	switch($nil){
+		case 0:
+			$hasil = "All";
+			break;
+		case 1:
+			$hasil = "Waiting for Manager approval";
+			break;
+		case 2:
+			$hasil = "Approved by Manager, waiting for SCM Approval";
+			break;
+		case 3:
+			$hasil = "Approved by SCM, ready for Goods Issue";
+			break;
+		case 4:
+			$hasil = "Good Issued";
+			break;
+		case 5:
+			$hasil = "Rejected by Manager";
+			break;
+		case 6:
+			$hasil = "Rejected by SCM";
+			break;
+		case 7:
+			$hasil = "Closed";
+			break;
+		case 8:
+			$hasil = "Approved by SCM, waiting for Return to Stock";
+			break;
+		case 9:
+			$hasil = "Returned To Stock / Closed";
+			break;
+	}
+	return $hasil;
+}
+
+function atk_master() {
+	$tampilkan 	= atk_stock_kritis();
+	$rolesAdmin	= $GLOBALS['user']->roles[169];
+	$xxx		= $GLOBALS['user']->name;
+// 	$xx 	= atk_user_lokasi_toemail(1,1);
+	if($rolesAdmin){
+		$hasil = "<a href='" .base_path(). "atk/online/master/upload/gr'><li>Upload GR</li></a>";
+		$hasil .= "<a href='" .base_path(). "atk/online/category/view'><li>Category</li></a>";
+		$hasil .= "<a href='" .base_path(). "atk/online/material/view'><li>Material</li></a>";
+		$hasil .= "<a href='" .base_path(). "atk/online/plant/view'><li>Plant</li></a>";
+		$hasil .= "<a href='" .base_path(). "atk/online/warehouse/view'><li>Warehouse</li></a>";
+	}
+	$hasil .= "<a href='" .base_path(). "atk/online/stock/view'><li>Stock</li></a>";
+	$hasil .= "<a href='" .base_path(). "atk/online/user/view'><li>User Mapping</li></a>";
+	if($xxx == 'pep-webdev01.mdgti'){
+		$hasil .= "<a href='" .base_path(). "atk/online/master/upload/user'><li>Add User Upload</li></a>";
+	}
+	return $hasil;
+}
+
+function atk_report() {
+	$tampilkan 	= atk_stock_kritis();
+	$rolesAdmin	= $GLOBALS['user']->roles[169];
+// 	$hasil = "<a href='" .base_path(). "atk/online/report/liststock'><li>List Display Stock</li></a>";
+// 	$hasil .= "<a href='" .base_path(). "atk/online/report/reservation'><li>Reservation Report</li></a>";
+// 	$hasil .= "<a href='" .base_path(). "atk/online/report/form'><li>Reservation Report</li></a>";
+	$hasil .= "<a href='" .base_path(). "atk/online/master/listall'><li>Reservation Status</li></a>";
+// 	$hasil .= "<a href='" .base_path(). "atk/online/report/liststock'><li>Rayon Card</li></a>";
+	if($rolesAdmin){
+		$hasil .= "<a href='" .base_path(). "atk/online/report/reject'><li>Report Reservation Rejected</li></a>";
+		$hasil .= "<a href='" .base_path(). "atk/online/report/penggunaan'><li>Report Material Belum diambil</li></a>";
+		$hasil .= "<a href='" .base_path(). "atk/online/report/logs'><li>History Logs</li></a>";
+	}
+	return $hasil;
+}	
+function cek_nopek_atk($nopek) {
+	db_set_active('pep');
+	$db_data = db_query("SELECT NoPek,UserName,KodeJabatan,PA,PSA FROM sap_personal WHERE NoPek = $nopek");
+	while($row = db_fetch_array($db_data)) {
+		$hasil['nopek'] 	= $nopek;
+		$hasil['nama'] 		= $row['UserName'];
+		$hasil['jabatan'] 	= cek_jabatan_atk($row['KodeJabatan']);
+		$hasil['fungsi'] 	= cek_fungsi_atk($row['PA']);
+	};
+	db_set_active();
+	return $hasil;
+}
+function cek_jabatan_atk($nojab) {
+	db_set_active('pep');
+	$db_data = db_query("SELECT Kode,Nama FROM sap_jabatan WHERE Kode = $nojab");
+	while($row = db_fetch_array($db_data)) {
+		$hasil 	= $row['Nama'];
+	};
+	db_set_active();
+	return $hasil;
+}
+function cek_fungsi_atk($nofung) {
+	db_set_active('pep');
+	$db_data = db_query("SELECT PERS_AREA,PERS_AREA_TEXT FROM sap_personal_area WHERE PERS_AREA = $nofung");
+	while($row = db_fetch_array($db_data)) {
+		$hasil 	= $row['PERS_AREA_TEXT'];
+	};
+	db_set_active();
+	return $hasil;
+}
+function atk_logs($page,$ket) {
+	$timeStamp	= mktime();
+	$name		= $GLOBALS['user']->name;
+	
+	if(is_array($ket)){
+		$ketx 	= '';
+		foreach ($ket as $key => $value){
+			$ketx .=  $key .' : '. $value .'<br>';
+		}
+		$ket 	= $ketx;
+	}
+	
+	db_set_active('pep');
+	$hasil = db_query("INSERT INTO atk_logs (timeStamp,name,page,keterangan) VALUES (%d,'%s','%s','%s')", $timeStamp,$name,$page,$ket);
+	if($hasil){
+// 		drupal_set_message('Log is Taken');
+	}
+	db_set_active();
+	return $hasil;
+}
+function atk_perm() {
+	return array('atk admin','atk issuer','atk gudang','atk scm approval','atk manager approval','atk super admin');
+}
